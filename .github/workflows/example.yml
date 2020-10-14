@@ -9,12 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: pr-step
+        id: check
         uses: bedlaj/pr-comment-trigger@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          command: /test(%{WORD:param1},%{INT:param2})
+          command: /test %{WORD:param1 %{INT:param2}
       - name: echo
-        if: steps.pr-step.outputs.triggered == 'true'
+        if: steps.check.outputs.triggered == 'true'
         run: |
-          echo 'The param1 is' ${steps.pr-step.outputs.command.param1}
-          echo 'The param2 is' ${steps.pr-step.outputs.command.param2}
+          echo 'The param1 is' ${{steps.check.outputs.param1}}
+          echo 'The param2 is' ${{steps.check.outputs.param2}}

@@ -47,7 +47,7 @@ async function run() {
             : context?.payload?.pull_request?.body;
 
     if (!messageMatchPattern(body, command)) {
-        core.info("Comment does not match pattern");
+        core.info(`Comment does not match pattern ${command}`);
         if (cancel) {
             await cancelSelf();
         }
@@ -87,7 +87,7 @@ function messageMatchPattern(message: string, messagePattern: string) {
     if (result != null) {
         core.setOutput("command", result);
         for (const [key, value] of Object.entries(result)) {
-            core.setOutput(`command.${key}`, value);
+            core.setOutput(key, value);
         }
         return true;
     }

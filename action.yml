@@ -26,8 +26,6 @@ inputs:
 outputs:
   triggered:
     description: the string 'true' if the trigger was found, otherwise the string 'false'
-  command:
-    description: 'Map of params parsed from command.'
 runs:
   using: docker
   image: 'docker://bedlaj/pr-comment-trigger:latest'
