@@ -30,7 +30,4 @@ outputs:
     description: 'Map of params parsed from command.'
 runs:
   using: docker
-  image: Dockerfile
-branding:
-  icon: check-circle
-  color: red
+  image: 'docker://bedlaj/pr-comment-trigger:latest'
