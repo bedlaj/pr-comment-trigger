@@ -1,0 +1,36 @@
+name: 'PR Comment Trigger'
+description: 'Look for a "trigger word" in a pull-request description or comment, so that later steps can know whether or not to run.'
+inputs:
+  command:
+    description: 'The string to look for in pull-request descriptions and comments. Optionally can be in form of grok pattern to capture arguments to outputs.command.XXX'
+    required: true
+  token:
+    description: 'Github token.'
+    required: true
+  cancel:
+    description: If 'true' the trigger cancels workflow if trigger command not matched
+    required: false
+    default: "false"
+  reply:
+    description: Reply to comment with workflow run URL
+    required: false
+    default: "true"
+  checkout:
+    description: Checkout the PR branch
+    required: false
+    default: "true"
+  role:
+    description: User role in the repository allowed to trigger action. Allowed values are ALL, CONTRIBUTOR, OWNER
+    required: false
+    default: "ALL"
+outputs:
+  triggered:
+    description: the string 'true' if the trigger was found, otherwise the string 'false'
+  command:
+    description: 'Map of params parsed from command.'
+runs:
+  using: docker
+  image: Dockerfile
+branding:
+  icon: check-circle
+  color: red
