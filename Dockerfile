@@ -10,4 +10,4 @@ RUN npm run build
 FROM node:14.13-alpine3.10
 COPY --from=builder dist /dist
 RUN apk add --no-cache git && apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing hub
-ENTRYPOINT ["node", "/dist/index.ts"]
+ENTRYPOINT ["node", "/dist/index.js"]
