@@ -3,18 +3,27 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "build": "tsc",
   "scripts": {
-    "dist": "npx -p @vercel/ncc ncc build index.js",
-    "format": "prettier --write \"*.js\" --tab-width=4"
+    "build": "tsc && ncc build",
+    "format": "prettier --write \"src/*.js\" --tab-width=4"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bedlaj/pr-comment-trigger.git"
+    "url": "https://github.com/bedlaj/pr-comment-trigger.git"
   },
   "keywords": [],
-  "author": "bedlaj",
-  "license": "ISC",
+  "author": "Jan Bednar <public@janbednar.eu> (https://janbednar.eu)",
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "bugs": {
+    "mail": "public@janbednar.eu",
     "url": "https://github.com/bedlaj/pr-comment-trigger/issues"
   },
   "homepage": "https://github.com/bedlaj/pr-comment-trigger#readme",
@@ -25,5 +34,11 @@
     "grok-js": "^3.3.1",
     "prettier": "^1.19.1",
     "prettier-cli": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.11.1",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3",
+    "@vercel/ncc": "^0.24.1"
   }
 }

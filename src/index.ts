@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 
-const core = require("@actions/core");
-const github = require("@actions/github");
-const exec = require("@actions/exec");
+import {ExecOptions} from "@actions/exec/lib/interfaces";
+import core = require("@actions/core");
+import github = require("@actions/github");
+import exec = require("@actions/exec");
+import grok = require("grok-js");
+import * as Context from "@actions/github/lib/context";
+import {GitHub} from "@actions/github/lib/utils";
+
 const {
     GITHUB_ACTOR,
     GITHUB_WORKSPACE,
@@ -10,24 +15,23 @@ const {
     GITHUB_REPOSITORY,
     GITHUB_RUN_ID
 } = process.env;
-const TOKEN = core.getInput("token", { required: true });
-const client = github.getOctokit(TOKEN);
-const context = github.context;
+const TOKEN: string = core.getInput("token", { required: true });
+const client: InstanceType<typeof GitHub> = github.getOctokit(TOKEN);
+const context: Context.Context = github.context;
 const { owner, repo } = context.repo;
-const WORKFLOW_URL = `https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
-const grok = require("grok-js");
-const patterns = grok.loadDefaultSync();
+const WORKFLOW_URL: string = `https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}`;
+const patterns: grok.GrokCollection = grok.loadDefaultSync();
 
 async function run() {
-    const command = core.getInput("command", { required: true });
-    const cancel = core.getInput("cancel", { required: false }) === "true";
-    const reply = core.getInput("reply", { required: false }) === "true";
-    const role = core.getInput("role", { required: false });
-    const checkout = core.getInput("checkout", { required: false }) === "true";
+    const command: string = core.getInput("command", { required: true });
+    const cancel: boolean = core.getInput("cancel", { required: false }) === "true";
+    const reply: boolean = core.getInput("reply", { required: false }) === "true";
+    const role: string = core.getInput("role", { required: false });
+    const checkout: boolean = core.getInput("checkout", { required: false }) === "true";
 
     if (
         context.eventName === "issue_comment" &&
-        !context.payload.issue.pull_request
+        !context?.payload?.issue?.pull_request
     ) {
         core.info("Not a pull request comment");
         core.setOutput("triggered", false);
@@ -37,10 +41,10 @@ async function run() {
         return;
     }
 
-    const body =
+    const body: string =
         context.eventName === "issue_comment"
-            ? context.payload.comment.body
-            : context.payload.pull_request.body;
+            ? context?.payload?.comment?.body
+            : context?.payload?.pull_request?.body;
 
     if (!messageMatchPattern(body, command)) {
         core.info("Comment does not match pattern");
@@ -76,9 +80,9 @@ async function run() {
     }
 }
 
-function messageMatchPattern(message, messagePattern) {
-    const pattern = patterns.createPattern(messagePattern);
-    const result = pattern.parseSync(message);
+function messageMatchPattern(message: string, messagePattern: string) {
+    const pattern: grok.GrokPattern = patterns.createPattern(messagePattern);
+    const result: any = pattern.parseSync(message);
 
     if (result != null) {
         core.setOutput("command", result);
@@ -90,36 +94,36 @@ function messageMatchPattern(message, messagePattern) {
     return false;
 }
 
-async function react(reaction) {
+async function react(reaction: any) {
     if (context.eventName === "issue_comment") {
         await client.reactions.createForIssueComment({
             owner,
             repo,
-            comment_id: context.payload.comment.id,
+            comment_id: context!.payload!.comment!.id,
             content: reaction
         });
     } else {
         await client.reactions.createForIssue({
             owner,
             repo,
-            issue_number: context.payload.issue.number,
+            issue_number: context!.payload!.issue!.number,
             content: reaction
         });
     }
 }
 
-async function comment(message) {
+async function comment(message: string) {
     await client.issues.createComment({
         owner,
         repo,
-        issue_number: context.payload.issue.number,
+        issue_number: context!.payload!.issue!.number!,
         body: `@${GITHUB_ACTOR} ${message}`
     });
 }
 
 async function checkoutBranch() {
-    const options = {};
-    options.listeners = {
+    const options: ExecOptions = {};
+    options['listeners'] = {
         stdout: data => {
             core.info(data.toString());
         },
@@ -129,22 +133,22 @@ async function checkoutBranch() {
     };
     options.env = options.env || {};
     options.env["GITHUB_TOKEN"] = TOKEN;
-    options.env["GITHUB_USER"] = GITHUB_ACTOR;
+    options.env["GITHUB_USER"] = GITHUB_ACTOR!;
     options.env["HUB_PROTOCOL"] = "https";
-    options.env["GITHUB_REPOSITORY"] = context.payload.repository.full_name;
-    options.env["HOME"] = HOME;
+    options.env["GITHUB_REPOSITORY"] = context!.payload!.repository!.full_name!;
+    options.env["HOME"] = HOME || '.';
     options.env["PATH"] =
         "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
     options.cwd = GITHUB_WORKSPACE;
-    const pr_number = context.payload.issue.number;
+    const pr_number = context?.payload?.issue?.number;
     await exec.exec(
         "hub",
-        ["clone", context.payload.repository.full_name, GITHUB_WORKSPACE],
+        ["clone", context!.payload!.repository!.full_name!, GITHUB_WORKSPACE || '.'],
         options
     );
     await exec.exec(
         "hub",
-        ["pr", "checkout", pr_number, `pr-${pr_number}`],
+        ["pr", "checkout", `${pr_number}`, `pr-${pr_number}`],
         options
     );
     core.info(`PR ${pr_number} checkout successful`);
@@ -154,12 +158,12 @@ async function cancelSelf() {
     await client.actions.cancelWorkflowRun({
         owner: owner,
         repo: repo,
-        run_id: GITHUB_RUN_ID
+        run_id: Number(GITHUB_RUN_ID)
     });
 }
 
-function commenterHasRole(role) {
-    return context.payload.comment.get("author_association") === role;
+function commenterHasRole(role: string): boolean {
+    return context!.payload!.comment!.get("author_association") === role;
 }
 
 run().catch(err => {
